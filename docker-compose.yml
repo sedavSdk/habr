@@ -1,0 +1,39 @@
+version: '3'
+services:
+    
+    static_s:
+        image: nginx
+        container_name: my_nginx
+        volumes:
+            - ./php/src/style.css:/usr/share/nginx/style.css
+            - ./php_for_nginx/conf/:/etc/nginx/conf.d
+            - ./php/src/index.html:/usr/share/nginx/index.html
+        ports:
+            - "80:80"
+        depends_on:
+            - php-apache
+
+    php-apache:
+        container_name: my_php-apache
+        build:
+            dockerfile: Dockerfile
+        depends_on:
+            - db
+        volumes:
+            - ./php/src/check.php:/var/www/pr/check.php
+            - ./php/src/private:/var/www/pr/private
+            - ./php/000-default.conf:/etc/apache2/sites-available/000-default.conf
+    db:
+        container_name: auth_data
+        image: mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: appDB
+        volumes:
+            - ./:/docker-entrypoint-initdb.d
+            - db_volume:/var/lib/mysql
+        ports:
+            - "9906:3306"
+volumes:
+    db_volume:
